@@ -138,7 +138,9 @@ namespace wp8_rtsp_rtp
             if (CurrentState == State.Init || CurrentState == State.Teardown)
             {
                 CurrentState = State.Connect;
-                RtpStream.DeterminePort(new AsyncCallback(PlayAsyncCallback));
+                //RtpStream.DeterminePort(new AsyncCallback(PlayAsyncCallback));
+                //CurrentState = State.Connect;
+                RtspSocket.ConnectAsync(RtspEvntArgs);
             }
         }
 

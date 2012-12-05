@@ -15,7 +15,7 @@ namespace wp8_rtsp_rtp
         private SocketAsyncEventArgs RtpEvntArgs;
         public int ServerPort {get;set;}
         public string ServerIP {get;set;}
-        public int ClientPort { get; set; }
+        public int ClientPort { get { return RtpPort; } }
         public MemoryStream RtpStream;
         private bool PortDetermined = false;
 
@@ -23,6 +23,8 @@ namespace wp8_rtsp_rtp
         private const int PortDetermineServerPort = 22222;
         private const int MaxBufferSize = 1024;
         private const int RtpPacketHeaderSize = 12;
+        public const int RtpPort = 56000;
+        private const int RtcpPort = RtpPort + 1;
         private int CurrentPacketSize;
 
         private static Rtp instance;
@@ -46,6 +48,12 @@ namespace wp8_rtsp_rtp
         public Rtp()
         {
             RtpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            SocketAddress sa = new SocketAddress(AddressFamily.InterNetwork);
+            IPEndPoint ep = new IPEndPoint(IPAddress.Any, RtpPort);
+            RtpSocket.Bind(ep);
+            //IPEndPoint iep = (IPEndPoint)RtpSocket.LocalEndPoint;
+            //ClientPort = iep.Port;
+            //Logging.Log(string.Format("Ip Address {0}, Port {1}", iep.Address.ToString(), ClientPort));
             RtpEvntArgs = new SocketAsyncEventArgs();
             RtpEvntArgs.Completed += RtpEvntArgs_Completed;
         }
@@ -62,7 +70,7 @@ namespace wp8_rtsp_rtp
                     {
                         case RtpState.DeterminePort:
                             string message = Encoding.UTF8.GetString(e.Buffer, 0, e.BytesTransferred);
-                            ClientPort = int.Parse(message);
+                            //ClientPort = int.Parse(message);
                             PortDetermined = true;
                             acb.Invoke(new DPIAsyncResult(ClientPort));
                             break;
@@ -114,6 +122,9 @@ namespace wp8_rtsp_rtp
             RtpEvntArgs.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(ServerIP), ServerPort);
             CurrentState = RtpState.Stream;
             CurrentPacketSize = 0;
+            //RtpSocket.Listen(1);
+            //RtpSocket.AcceptAsync(RtpEvntArgs);
+            //RtpSocket.ConnectAsync(RtpEvntArgs);
             Receive();
         }
 
